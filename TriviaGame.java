@@ -66,7 +66,7 @@ class Login extends JFrame {
                 String password = new String(passwordField.getText());
 
                 if (!username.isEmpty() && !password.isEmpty()) {
-                    // Display "Logging in..." on the login button
+                    
                     loginButton.setText("Logging in...");
                     loginButton.setEnabled(false);
 
