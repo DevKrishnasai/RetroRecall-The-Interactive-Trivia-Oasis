@@ -221,7 +221,7 @@ class Menu extends JFrame {
 }
 
 class RetroGameHub extends JFrame {
-    JButton retroGame1Button,logoutButton;
+    JButton retroGame1Button,logoutButton,retroGame2Button,retroGame3Button;
     JPanel panel;
 
     RetroGameHub() {
@@ -232,6 +232,8 @@ class RetroGameHub extends JFrame {
         panel.setBackground(Color.WHITE);
 
         retroGame1Button = createStyledButton("Snake", buttonFont);
+        retroGame2Button = createStyledButton("GuessTheNumber", buttonFont);
+        retroGame3Button = createStyledButton("Pong", buttonFont);
         logoutButton = new JButton("Logout");
         logoutButton.setFont(buttonFont);
         logoutButton.setBackground(Color.RED);
@@ -239,7 +241,10 @@ class RetroGameHub extends JFrame {
 
         panel.add(Box.createRigidArea(new Dimension(0, 20)));
         panel.add(retroGame1Button);
-        
+        panel.add(Box.createRigidArea(new Dimension(0, 20)));
+        panel.add(retroGame2Button);
+        panel.add(Box.createRigidArea(new Dimension(0, 20)));
+        panel.add(retroGame3Button);
         panel.add(Box.createRigidArea(new Dimension(0, 20)));
         panel.add(createLogoutButton(), BorderLayout.SOUTH);
 
@@ -252,6 +257,22 @@ class RetroGameHub extends JFrame {
                 dispose();
                 SnakeGame snakeGame = new SnakeGame();
                 snakeGame.setVisible(true);
+            }
+        });
+         retroGame2Button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Write code here
+                dispose();
+                GuessTheNumber guessTheNumber = new GuessTheNumber();
+                guessTheNumber.setVisible(true);
+            }
+        });
+        retroGame3Button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Write code here
+                dispose();
+                HangmanGame pong= new HangmanGame();
+                pong.setVisible(true);
             }
         });
         
@@ -298,6 +319,263 @@ class RetroGameHub extends JFrame {
     }
 }
 
+
+class HangmanGame extends JFrame {
+    private static final int WIDTH = 400;
+    private static final int HEIGHT = 400;
+    
+    private String[] words = {"apple", "banana", "cherry", "date", "elderberry"};
+    private String wordToGuess;
+    private StringBuilder guessedWord;
+    private int attemptsLeft = 6;
+    private JTextField letterInputField;
+    private JLabel wordLabel;
+    private JLabel attemptsLabel;
+    private JLabel resultLabel;
+    
+    public HangmanGame() {
+        setSize(WIDTH, HEIGHT);
+        setResizable(false);
+        initializeGame();
+        setupUI();
+        addListeners();
+    }
+    
+    private void initializeGame() {
+        Random random = new Random();
+        wordToGuess = words[random.nextInt(words.length)];
+        guessedWord = new StringBuilder("_".repeat(wordToGuess.length()));
+    }
+    
+    private void setupUI() {
+        setLayout(new FlowLayout());
+        
+        wordLabel = new JLabel("Word: " + guessedWord);
+        attemptsLabel = new JLabel("Attempts left: " + attemptsLeft);
+        resultLabel = new JLabel();
+        
+        letterInputField = new JTextField(1);
+        
+        add(wordLabel);
+        add(attemptsLabel);
+        add(letterInputField);
+        add(resultLabel);
+    }
+    
+    private void addListeners() {
+        letterInputField.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (attemptsLeft > 0) {
+                    String input = letterInputField.getText().toLowerCase();
+                    if (input.length() == 1 && Character.isLetter(input.charAt(0))) {
+                        processGuess(input.charAt(0));
+                        letterInputField.setText("");
+                    }
+                }
+            }
+        });
+    }
+    
+    private void processGuess(char guess) {
+        boolean correctGuess = false;
+        for (int i = 0; i < wordToGuess.length(); i++) {
+            if (wordToGuess.charAt(i) == guess && guessedWord.charAt(i) == '_') {
+                guessedWord.setCharAt(i, guess);
+                correctGuess = true;
+            }
+        }
+        
+        if (!correctGuess) {
+            attemptsLeft--;
+        }
+        
+        updateUI();
+        checkGameStatus();
+    }
+    
+    private void updateUI() {
+        wordLabel.setText("Word: " + guessedWord);
+        attemptsLabel.setText("Attempts left: " + attemptsLeft);
+    }
+    
+    private void checkGameStatus() {
+        if (guessedWord.toString().equals(wordToGuess)) {
+            resultLabel.setText("Congratulations! You guessed the word: " + wordToGuess);
+            letterInputField.setEnabled(false);
+            dispose();
+            new GameOverDialog2(this, "You Won", "You Won").setVisible(true);
+        } else if (attemptsLeft == 0) {
+            resultLabel.setText("You ran out of attempts. The word was: " + wordToGuess);
+            letterInputField.setEnabled(false);
+            dispose();
+            new GameOverDialog2(this, "You Lost", "You Won").setVisible(true);
+        }
+    }
+    
+}
+
+class GameOverDialog2 extends JDialog {
+    public GameOverDialog2(JFrame parent, String title, String message) {
+        super(parent,title, true);
+        setSize(300, 100);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLayout(new FlowLayout());
+
+        JLabel messageLabel = new JLabel(message);
+        JButton closeButton = new JButton("Close");
+        JButton goBackButton = new JButton("Go Back");
+        JButton restartButton = new JButton("Restart");
+
+        
+        // Add action listeners for the buttons
+        restartButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+        // Close the current SnakeGame instance
+        parent.dispose();
+
+        // Create and show a new HangMan instance
+        SwingUtilities.invokeLater(() -> {
+            HangmanGame newGame = new HangmanGame();
+            newGame.setVisible(true);
+        });
+    }
+});
+
+        closeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+
+                dispose(); // Close the dialog
+            }
+        });
+
+         goBackButton.addActionListener(new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        parent.dispose();
+        // Create and show the RetroGameHub window
+        RetroGameHub retroGameHub = new RetroGameHub();
+        retroGameHub.setVisible(true);
+
+        // Close the current GameOverDialog
+        dispose();
+    }
+    });
+
+        add(messageLabel);
+        add(closeButton);
+        add(goBackButton);
+        add(restartButton);
+    }
+}
+
+
+
+class GuessTheNumber extends JFrame {
+    private int numberToGuess;
+    private int numberOfTries;
+    private final JLabel messageLabel;
+    private final JTextField inputField;
+    private final JButton guessButton;
+
+    public GuessTheNumber() {
+        setTitle("Guess the Number");
+        setSize(300, 150);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new FlowLayout());
+
+        messageLabel = new JLabel("I'm thinking of a number between 1 and 100.");
+        inputField = new JTextField(10);
+        guessButton = new JButton("Guess");
+
+        numberToGuess = new Random().nextInt(10) + 1;
+        numberOfTries = 0;
+
+        guessButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                checkGuess();
+            }
+        });
+
+        add(messageLabel);
+        add(inputField);
+        add(guessButton);
+    }
+
+    private void checkGuess() {
+        try {
+            int userGuess = Integer.parseInt(inputField.getText());
+            numberOfTries++;
+
+            if (userGuess < numberToGuess) {
+                messageLabel.setText("Higher. Try again.");
+            } else if (userGuess > numberToGuess) {
+                messageLabel.setText("Lower. Try again.");
+            } else {
+                messageLabel.setText("Congratulations! You guessed the number in " + numberOfTries + " tries.");
+                guessButton.setEnabled(false);
+                dispose();
+                new GameOverDialog1(this, "You Won", "You Won in " + numberOfTries + " tries.").setVisible(true);
+            }
+        } catch (NumberFormatException ex) {
+            messageLabel.setText("Invalid input. Enter a number between 1 and 100.");
+        }
+    }
+}
+class GameOverDialog1 extends JDialog {
+    public GameOverDialog1(JFrame parent, String title, String message) {
+        super(parent, title, true);
+        setSize(300, 100);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLayout(new FlowLayout());
+
+        JLabel messageLabel = new JLabel(message);
+        JButton closeButton = new JButton("Close");
+        JButton goBackButton = new JButton("Go Back");
+        JButton restartButton = new JButton("Restart");
+
+        
+        // Add action listeners for the buttons
+        restartButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+        // Close the current SnakeGame instance
+        parent.dispose();
+
+        // Create and show a new SnakeGame instance
+        SwingUtilities.invokeLater(() -> {
+            GuessTheNumber newGame = new GuessTheNumber();
+            newGame.setVisible(true);
+        });
+    }
+});
+
+        closeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+
+                dispose(); // Close the dialog
+            }
+        });
+
+         goBackButton.addActionListener(new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        parent.dispose();
+        // Create and show the RetroGameHub window
+        RetroGameHub retroGameHub = new RetroGameHub();
+        retroGameHub.setVisible(true);
+
+        // Close the current GameOverDialog
+        dispose();
+    }
+    });
+
+        add(messageLabel);
+        add(closeButton);
+        add(goBackButton);
+        add(restartButton);
+    }
+}
 class SnakeGame extends JFrame {
     private static final int WIDTH = 400;
     private static final int HEIGHT = 400;
